@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Bloomberg Terminal Theme */
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
+  --text-primary: #ff9500;
+  --text-secondary: #00d4ff;
+  --text-muted: #888888;
+  --accent-positive: #00ff88;
+  --accent-negative: #ff4444;
+  --border-color: #333333;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444444;
+}
+
+/* Terminal cursor effect */
+.terminal-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  background-color: var(--text-primary);
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Panel styling */
+.terminal-panel {
+  @apply bg-terminal-bg-secondary border border-terminal-border rounded;
+}
+
+.terminal-panel-header {
+  @apply px-3 py-2 border-b border-terminal-border text-terminal-text-primary text-sm font-bold;
+}
+
+.terminal-panel-content {
+  @apply p-3;
+}
+
+/* Status indicators */
+.status-indicator {
+  @apply w-2 h-2 rounded-full;
+}
+
+.status-online {
+  @apply bg-terminal-accent-positive;
+}
+
+.status-offline {
+  @apply bg-terminal-accent-negative;
+}
+
+.status-degraded {
+  @apply bg-terminal-accent-warning;
+}
+
+/* Data display */
+.data-label {
+  @apply text-terminal-text-muted text-xs uppercase tracking-wider;
+}
+
+.data-value {
+  @apply text-white text-lg font-bold;
+}
+
+.data-value-positive {
+  @apply text-terminal-accent-positive;
+}
+
+.data-value-negative {
+  @apply text-terminal-accent-negative;
+}
+
+/* Function key bar */
+.function-key {
+  @apply px-2 py-1 bg-terminal-bg-tertiary text-terminal-text-secondary text-xs;
+}
+
+.function-key:hover {
+  @apply bg-terminal-bg-hover;
+}
+
+/* Chat input styling */
+.chat-input {
+  @apply w-full bg-terminal-bg-tertiary border border-terminal-border rounded px-3 py-2 text-white placeholder-terminal-text-muted focus:outline-none focus:border-terminal-text-primary;
+}
+
+/* Metric card */
+.metric-card {
+  @apply terminal-panel p-3;
+}
+
+.metric-card-title {
+  @apply data-label mb-1;
+}
+
+.metric-card-value {
+  @apply data-value;
+}
+
+.metric-card-change {
+  @apply text-xs mt-1;
+}
+
+/* Agent badge */
+.agent-badge {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+}
+
+.agent-badge-strategic {
+  @apply bg-blue-900/50 text-blue-300;
+}
+
+.agent-badge-market {
+  @apply bg-purple-900/50 text-purple-300;
+}
+
+.agent-badge-channel {
+  @apply bg-green-900/50 text-green-300;
+}
+
+.agent-badge-analytics {
+  @apply bg-yellow-900/50 text-yellow-300;
+}
+
+.agent-badge-operations {
+  @apply bg-red-900/50 text-red-300;
+}
+
+/* Alert styling */
+.alert {
+  @apply p-3 rounded border-l-4;
+}
+
+.alert-critical {
+  @apply bg-red-900/20 border-terminal-accent-negative;
+}
+
+.alert-warning {
+  @apply bg-yellow-900/20 border-terminal-accent-warning;
+}
+
+.alert-info {
+  @apply bg-blue-900/20 border-terminal-accent-info;
+}
