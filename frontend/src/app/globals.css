@@ -97,11 +97,15 @@
 
 /* Function key bar */
 .function-key {
-  @apply px-2 py-1 bg-terminal-bg-tertiary text-terminal-text-secondary text-xs;
+  @apply px-2 py-1 bg-terminal-bg-tertiary text-terminal-text-secondary text-xs cursor-pointer transition-colors;
 }
 
 .function-key:hover {
   @apply bg-terminal-bg-hover;
+}
+
+.function-key:active {
+  @apply bg-terminal-text-primary text-black;
 }
 
 /* Chat input styling */
