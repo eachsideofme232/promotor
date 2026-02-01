@@ -1,22 +1,45 @@
-# Promotor
+# PromoHub
 
-**Bloomberg Terminal-style Beauty Brand Promotion Manager powered by AI Agents**
+**Promotion Calendar SaaS for K-Beauty Brands**
 
-A multi-agent system for managing K-beauty brand promotions across Oliveyoung, Coupang, Naver, and Kakao channels.
+A B2B platform for cosmetic companies to manage promotions across Korean e-commerce channels (Oliveyoung, Coupang, Naver, Kakao, Musinsa).
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
-![Next.js](https://img.shields.io/badge/next.js-14.2-black.svg)
+![Next.js](https://img.shields.io/badge/Next.js-14.2-black.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green.svg)
+![Turborepo](https://img.shields.io/badge/Turborepo-Monorepo-red.svg)
 
 ---
 
 ## Features
 
-- **21 AI Agents** organized into 5 specialized divisions
-- **Multi-channel management** - Oliveyoung, Coupang, Naver, Kakao
-- **Bloomberg Terminal-style UI** - Dark theme with real-time dashboard
-- **Korean language support** - Full Korean NLP and keyword matching
-- **Cost-optimized** - Tiered model usage (GPT-4o-mini for routine, GPT-4o for complex)
+### Phase 1 (Current)
+- **Promotion Calendar** - Month/week/day views with drag-and-drop
+- **Promotion CRUD** - Create, edit, delete promotions with forms
+- **Channel Filtering** - Filter by Korean e-commerce channels
+- **Team Sharing** - Multi-user access with role-based permissions
+- **Template System** - Reusable promotion patterns
+- **Conflict Detection** - Alert when promotions overlap
+
+### Coming Soon (Phase 2-3)
+- Strategy planning & competitor monitoring
+- Price monitoring & P&L simulation
+- AI-powered recommendations
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Monorepo** | Turborepo |
+| **Frontend** | Next.js 14 (App Router) |
+| **Styling** | Tailwind CSS |
+| **Database** | Supabase (PostgreSQL) |
+| **Auth** | Supabase Auth |
+| **Language** | TypeScript (strict mode) |
+| **Validation** | Zod |
+| **Deploy** | Vercel |
 
 ---
 
@@ -24,235 +47,111 @@ A multi-agent system for managing K-beauty brand promotions across Oliveyoung, C
 
 ### Prerequisites
 
-- Python 3.9+
 - Node.js 18+
-- OpenAI API key (required)
+- Supabase account (Cloud or Local with Docker)
 
-### 1. Clone the Repository
+### 1. Clone & Install
 
 ```bash
 git clone https://github.com/eachsideofme232/promotor.git
 cd promotor
-```
-
-### 2. Set Up Environment Variables
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and add your API key:
-
-```bash
-OPENAI_API_KEY=sk-your-api-key-here
-```
-
-### 3. Install Backend Dependencies
-
-**Option A: Full installation (includes ML/NLP)**
-```bash
-pip install -e .
-```
-
-**Option B: Core only (lighter, faster install)**
-```bash
-pip install fastapi uvicorn langchain-core langchain langgraph httpx python-dotenv
-```
-
-### 4. Install Frontend Dependencies
-
-```bash
-cd frontend
 npm install
-cd ..
 ```
 
-### 5. Run the Application
+### 2. Setup Supabase
 
-**Terminal 1 - Backend:**
+**Option A: Cloud Supabase**
+1. Create project at [supabase.com](https://supabase.com)
+2. Get your project URL and keys from Dashboard → Settings → API
+
+**Option B: Local Supabase**
 ```bash
-uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --reload
+# Requires Docker
+npx supabase start
 ```
 
-**Terminal 2 - Frontend:**
-```bash
-cd frontend
-npm run dev
-```
-
-### 6. Open in Browser
-
-- **Frontend**: http://localhost:3000
-- **API Docs**: http://localhost:8000/docs
-- **Health Check**: http://localhost:8000/health
-
----
-
-## Usage Guide
-
-### Dashboard Navigation
-
-Use keyboard shortcuts or click the buttons at the bottom:
-
-| Shortcut | Panel       | Description                          |
-|----------|-------------|--------------------------------------|
-| Alt+1    | Help        | Keyboard shortcuts and commands      |
-| Alt+2    | Calendar    | AI Assistant chat (default)          |
-| Alt+3    | Analytics   | Performance metrics and charts       |
-| Alt+4    | Channels    | Channel status and management        |
-| Alt+5    | Inventory   | Stock monitoring and alerts          |
-| Alt+6    | Budget      | Budget allocation and tracking       |
-| Alt+7    | Competitors | Competitive intelligence             |
-| Alt+8    | Settings    | System configuration                 |
-
-### AI Assistant Commands
-
-Type in the chat input to interact with the AI agents:
-
-```
-"Plan Q2 sunscreen promotions"
-"Check Oliveyoung rankings"
-"Analyze last month's performance"
-"Show inventory alerts"
-"What are competitors doing?"
-```
-
-Korean language is also supported:
-
-```
-"다음 분기 프로모션 계획 세워줘"
-"올리브영 순위 확인해줘"
-"재고 현황 알려줘"
-```
-
----
-
-## Architecture
-
-### Agent Divisions
-
-```
-                    Chief Coordinator
-                          │
-    ┌─────────┬───────────┼───────────┬─────────┐
-    │         │           │           │         │
-Strategic  Market    Channel    Analytics  Operations
-Planning   Intel    Management
-(3 agents) (4 agents) (5 agents) (7 agents) (3 agents)
-```
-
-| Division | Agents | Responsibilities |
-|----------|--------|------------------|
-| Strategic Planning | 3 | Promotion planning, timelines, budgets |
-| Market Intelligence | 4 | News, competitors, ingredients, trends |
-| Channel Management | 5 | Oliveyoung, Coupang, Naver, Kakao ops |
-| Analytics | 7 | Sentiment, margins, bundles, forecasting |
-| Operations | 3 | Inventory, pricing, checklists |
-
-### Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| Backend | FastAPI, LangChain, LangGraph |
-| Frontend | Next.js 14, Tailwind CSS, Radix UI |
-| LLM | OpenAI GPT-4o / Anthropic Claude |
-| Database | PostgreSQL (optional) |
-| Cache | Redis (optional) |
-
----
-
-## API Reference
-
-### Chat
+### 3. Configure Environment
 
 ```bash
-# Send a message
-curl -X POST http://localhost:8000/api/chat/ \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Plan Q2 promotions", "user_id": "user1", "brand_id": "brand1"}'
+cp apps/web/.env.example apps/web/.env.local
 ```
 
-### Agents
+Edit `apps/web/.env.local`:
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxx
+```
+
+### 4. Run Database Migrations
 
 ```bash
-# List all agents
-curl http://localhost:8000/api/agents/
+# Link to your Supabase project
+npx supabase link --project-ref YOUR_PROJECT_REF
 
-# List agents by division
-curl http://localhost:8000/api/agents/strategic_planning
+# Push migrations and seed data
+npx supabase db push
 ```
 
-### Dashboard
+Or run migrations manually via Supabase Dashboard → SQL Editor.
+
+### 5. Start Development Server
 
 ```bash
-# Get metrics
-curl http://localhost:8000/api/dashboard/metrics
-
-# Get channel status
-curl http://localhost:8000/api/dashboard/channels
-
-# Get alerts
-curl http://localhost:8000/api/dashboard/alerts
+npm run dev --filter=web
 ```
 
----
-
-## Development
-
-### Running Tests
-
-```bash
-# Run all e2e tests
-pytest tests/e2e/ -v
-
-# Run with coverage
-pytest tests/ --cov=backend
-```
-
-### Code Quality
-
-```bash
-# Python linting
-ruff check backend/
-ruff format backend/
-
-# Type checking
-mypy backend/
-```
-
-### Docker (Full Stack)
-
-```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f backend
-
-# Stop all services
-docker-compose down
-```
+Open [http://localhost:3000](http://localhost:3000)
 
 ---
 
 ## Project Structure
 
 ```
-promotor/
-├── backend/
-│   ├── agents/              # 21 AI agents in 5 divisions
-│   ├── api/                 # FastAPI routes
-│   ├── graph/               # LangGraph orchestration
-│   └── config.py            # Configuration
-├── frontend/
-│   └── src/
-│       ├── app/             # Next.js pages
-│       └── components/      # Dashboard UI components
-├── tests/
-│   └── e2e/                 # End-to-end tests
-├── docker-compose.yml
-├── pyproject.toml
-└── .env.example
+promohub/
+├── apps/
+│   ├── web/                    # Next.js web app
+│   │   ├── src/
+│   │   │   ├── app/            # App Router pages
+│   │   │   │   ├── (auth)/     # Login, signup
+│   │   │   │   ├── (dashboard)/# Calendar, promotions, settings
+│   │   │   │   └── api/        # API routes
+│   │   │   ├── components/     # UI components
+│   │   │   └── lib/            # Supabase clients
+│   │   └── middleware.ts       # Auth middleware
+│   └── landing/                # Marketing site
+├── packages/
+│   ├── db/                     # Database queries
+│   ├── types/                  # Shared TypeScript types
+│   ├── ui/                     # Shared UI components
+│   └── utils/                  # Shared utilities
+├── supabase/
+│   ├── migrations/             # Database migrations
+│   └── seed.sql                # Demo data
+└── turbo.json
+```
+
+---
+
+## Development Commands
+
+```bash
+# Start all apps
+npm run dev
+
+# Start web app only
+npm run dev --filter=web
+
+# Type checking
+npm run typecheck
+
+# Linting
+npm run lint
+
+# Build
+npm run build
+
+# Database reset (local Supabase)
+npx supabase db reset
 ```
 
 ---
@@ -261,22 +160,61 @@ promotor/
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `OPENAI_API_KEY` | Yes | OpenAI API key |
-| `ANTHROPIC_API_KEY` | No | Anthropic API key (optional) |
-| `DATABASE_URL` | No | PostgreSQL connection string |
-| `REDIS_URL` | No | Redis connection string |
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes | Supabase publishable key (sb_publishable_...) |
+| `SUPABASE_SECRET_KEY` | No | Supabase secret key (server-side only) |
 
-See `.env.example` for full list.
+---
+
+## Database Schema
+
+### Core Tables
+
+- **teams** - Multi-tenant team management
+- **team_members** - User-team relationships with roles
+- **channels** - Korean e-commerce platforms
+- **products** - Product/SKU management
+- **promotions** - Promotion calendar entries
+- **promo_templates** - Reusable promotion patterns
+- **promo_products** - Promotion-product relationships
+
+All tables have Row Level Security (RLS) enabled for multi-tenant isolation.
+
+---
+
+## Current Status
+
+**Phase 1 Progress: ~55%**
+
+| Feature | Status |
+|---------|--------|
+| Authentication | ✅ Complete |
+| Calendar UI | ✅ Complete |
+| Promotion Forms | ✅ Complete |
+| Database Schema | ✅ Complete |
+| API Integration | 🔄 In Progress |
+| Team Management | ⏳ Pending |
+
+See [CLAUDE.md](CLAUDE.md) for detailed implementation status.
 
 ---
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create a feature branch (`git checkout -b feat/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feat/amazing-feature`)
 5. Open a Pull Request
+
+### Commit Convention
+
+```
+feat(scope): message    # New feature
+fix(scope): message     # Bug fix
+chore(scope): message   # Maintenance
+refactor(scope): message # Code refactoring
+```
 
 ---
 
@@ -288,6 +226,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-- Built with [LangChain](https://langchain.com/) and [LangGraph](https://langchain-ai.github.io/langgraph/)
-- UI inspired by Bloomberg Terminal
-- Designed for K-beauty brand managers
+- Built for K-beauty brand managers
+- Designed for Korean e-commerce channels
+- Powered by [Supabase](https://supabase.com) and [Next.js](https://nextjs.org)
