@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npx turbo build --filter=@promohub/web",
+  "installCommand": "npm ci",
+  "framework": null,
+  "ignoreCommand": "npx turbo-ignore",
+  "env": {
+    "TURBO_REMOTE_CACHE_SIGNATURE_KEY": "@turbo_remote_cache_signature_key",
+    "ENABLE_EXPERIMENTAL_COREPACK": "1"
+  }
+}

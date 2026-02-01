@@ -1,58 +1,153 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import Link from 'next/link'
-import { Plus, Search, Filter, Calendar, Tag } from 'lucide-react'
+import { Plus } from 'lucide-react'
+import type { Promotion } from '@promohub/types'
+import { PromotionList, DEFAULT_CHANNELS } from '@/components/promotions'
 
-const CHANNELS = [
-  { id: 'oliveyoung', name: '올리브영', color: 'bg-green-500' },
-  { id: 'coupang', name: '쿠팡', color: 'bg-red-500' },
-  { id: 'naver', name: '네이버', color: 'bg-green-600' },
-  { id: 'kakao', name: '카카오', color: 'bg-yellow-500' },
-  { id: 'musinsa', name: '무신사', color: 'bg-black' },
-]
-
-const STATUS_LABELS = {
-  planned: { label: '예정', color: 'bg-blue-100 text-blue-700' },
-  active: { label: '진행중', color: 'bg-green-100 text-green-700' },
-  ended: { label: '종료', color: 'bg-gray-100 text-gray-700' },
-  cancelled: { label: '취소', color: 'bg-red-100 text-red-700' },
-}
-
-// Demo promotions
-const DEMO_PROMOTIONS = [
+// Demo promotions data - will be replaced with API calls
+const DEMO_PROMOTIONS: Promotion[] = [
   {
     id: '1',
+    teamId: 'team-1',
+    channelId: 'oliveyoung',
     title: '올리브영 2월 뷰티 페스타',
-    channel: 'oliveyoung',
+    description: '2월 한 달간 진행하는 대규모 뷰티 프로모션',
     status: 'active',
+    discountType: 'percentage',
+    discountValue: '30%',
     startDate: '2026-02-01',
     endDate: '2026-02-14',
-    discountType: '할인율',
-    discountValue: '30%',
+    createdAt: '2026-01-15T09:00:00Z',
+    updatedAt: '2026-01-20T14:30:00Z',
   },
   {
     id: '2',
+    teamId: 'team-1',
+    channelId: 'coupang',
     title: '쿠팡 발렌타인 기획전',
-    channel: 'coupang',
+    description: '발렌타인데이 특별 기획전 쿠폰 할인',
     status: 'planned',
+    discountType: 'coupon',
+    discountValue: '5,000원',
     startDate: '2026-02-10',
     endDate: '2026-02-14',
-    discountType: '쿠폰',
-    discountValue: '5,000원',
+    createdAt: '2026-01-18T10:00:00Z',
+    updatedAt: '2026-01-18T10:00:00Z',
   },
   {
     id: '3',
+    teamId: 'team-1',
+    channelId: 'naver',
     title: '네이버 브랜드 위크',
-    channel: 'naver',
+    description: '네이버 쇼핑 브랜드 위크 1+1 프로모션',
     status: 'planned',
+    discountType: 'bogo',
+    discountValue: '1+1',
     startDate: '2026-02-15',
     endDate: '2026-02-22',
-    discountType: 'BOGO',
-    discountValue: '1+1',
+    createdAt: '2026-01-20T11:00:00Z',
+    updatedAt: '2026-01-20T11:00:00Z',
+  },
+  {
+    id: '4',
+    teamId: 'team-1',
+    channelId: 'kakao',
+    title: '카카오 선물하기 기획전',
+    description: '카카오 선물하기 단독 기획전',
+    status: 'planned',
+    discountType: 'gift',
+    discountValue: '미니어처 증정',
+    startDate: '2026-02-20',
+    endDate: '2026-02-28',
+    createdAt: '2026-01-22T09:00:00Z',
+    updatedAt: '2026-01-22T09:00:00Z',
+  },
+  {
+    id: '5',
+    teamId: 'team-1',
+    channelId: 'musinsa',
+    title: '무신사 뷰티 페스티벌',
+    description: '무신사 뷰티 카테고리 론칭 기념 페스티벌',
+    status: 'planned',
+    discountType: 'bundle',
+    discountValue: '세트 20% 할인',
+    startDate: '2026-03-01',
+    endDate: '2026-03-15',
+    createdAt: '2026-01-25T10:00:00Z',
+    updatedAt: '2026-01-25T10:00:00Z',
+  },
+  {
+    id: '6',
+    teamId: 'team-1',
+    channelId: 'oliveyoung',
+    title: '올리브영 1월 세일',
+    description: '1월 할인 행사 종료',
+    status: 'ended',
+    discountType: 'percentage',
+    discountValue: '25%',
+    startDate: '2026-01-01',
+    endDate: '2026-01-15',
+    createdAt: '2025-12-20T09:00:00Z',
+    updatedAt: '2026-01-16T09:00:00Z',
+  },
+  {
+    id: '7',
+    teamId: 'team-1',
+    channelId: 'coupang',
+    title: '쿠팡 신년 행사 (취소)',
+    description: '일정 변경으로 취소됨',
+    status: 'cancelled',
+    discountType: 'coupon',
+    discountValue: '10,000원',
+    startDate: '2026-01-05',
+    endDate: '2026-01-10',
+    createdAt: '2025-12-28T11:00:00Z',
+    updatedAt: '2026-01-03T14:00:00Z',
   },
 ]
 
+// Convert default channels to the format expected by PromotionList
+const CHANNELS = DEFAULT_CHANNELS.map((ch) => ({
+  id: ch.id,
+  name: ch.name,
+  color: ch.color,
+}))
+
 export default function PromotionsPage() {
+  const [promotions, setPromotions] = useState<Promotion[]>(DEMO_PROMOTIONS)
+
+  const handleDuplicate = useCallback((id: string) => {
+    const originalPromotion = promotions.find((p) => p.id === id)
+    if (!originalPromotion) return
+
+    const newPromotion: Promotion = {
+      ...originalPromotion,
+      id: `${Date.now()}`,
+      title: `${originalPromotion.title} (복사본)`,
+      status: 'planned',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    setPromotions((prev) => [newPromotion, ...prev])
+  }, [promotions])
+
+  const handleDelete = useCallback((id: string) => {
+    setPromotions((prev) => prev.filter((p) => p.id !== id))
+  }, [])
+
+  const handleBulkDelete = useCallback((ids: string[]) => {
+    setPromotions((prev) => prev.filter((p) => !ids.includes(p.id)))
+  }, [])
+
+  const handleBulkExport = useCallback((ids: string[]) => {
+    const selectedPromotions = promotions.filter((p) => ids.includes(p.id))
+    const csvContent = generateCSV(selectedPromotions)
+    downloadCSV(csvContent, 'promotions-export.csv')
+  }, [promotions])
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
@@ -60,7 +155,9 @@ export default function PromotionsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">프로모션 관리</h1>
-            <p className="text-sm text-gray-500">모든 프로모션을 한 곳에서 관리하세요</p>
+            <p className="text-sm text-gray-500">
+              모든 프로모션을 한 곳에서 관리하세요
+            </p>
           </div>
 
           <Link
@@ -71,101 +168,96 @@ export default function PromotionsPage() {
             새 프로모션
           </Link>
         </div>
-
-        {/* Search and filters */}
-        <div className="flex items-center gap-4 mt-4">
-          <div className="flex-1 relative">
-            <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="프로모션 검색..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-
-          <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50">
-            <Filter size={18} />
-            필터
-          </button>
-        </div>
       </header>
 
-      {/* Promotion list */}
-      <div className="flex-1 p-6 overflow-auto">
-        <div className="bg-white rounded-lg border border-gray-200">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  프로모션
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  채널
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  기간
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  할인
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  상태
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  작업
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {DEMO_PROMOTIONS.map(promo => {
-                const channel = CHANNELS.find(c => c.id === promo.channel)
-                const status = STATUS_LABELS[promo.status as keyof typeof STATUS_LABELS]
-
-                return (
-                  <tr key={promo.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <Link href={`/promotions/${promo.id}`} className="font-medium text-gray-900 hover:text-primary-600">
-                        {promo.title}
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${channel?.color}`} />
-                        {channel?.name}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      <span className="flex items-center gap-1">
-                        <Calendar size={14} />
-                        {promo.startDate} ~ {promo.endDate}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="flex items-center gap-1 text-sm">
-                        <Tag size={14} className="text-gray-400" />
-                        {promo.discountType}: {promo.discountValue}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>
-                        {status.label}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/promotions/${promo.id}`}
-                        className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-                      >
-                        편집
-                      </Link>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+      {/* Content */}
+      <div className="flex-1 p-6 overflow-auto bg-gray-50">
+        <PromotionList
+          promotions={promotions}
+          channels={CHANNELS}
+          onDuplicate={handleDuplicate}
+          onDelete={handleDelete}
+          onBulkDelete={handleBulkDelete}
+          onBulkExport={handleBulkExport}
+        />
       </div>
     </div>
   )
+}
+
+// Helper functions for CSV export
+function generateCSV(promotions: Promotion[]): string {
+  const headers = [
+    '제목',
+    '채널',
+    '상태',
+    '할인 유형',
+    '할인 값',
+    '시작일',
+    '종료일',
+    '설명',
+  ]
+
+  const channelMap: Record<string, string> = {
+    oliveyoung: '올리브영',
+    coupang: '쿠팡',
+    naver: '네이버',
+    kakao: '카카오',
+    musinsa: '무신사',
+    ssg: 'SSG',
+    lotteon: '롯데온',
+    '11st': '11번가',
+  }
+
+  const statusMap: Record<string, string> = {
+    planned: '예정',
+    active: '진행중',
+    ended: '종료',
+    cancelled: '취소',
+  }
+
+  const discountTypeMap: Record<string, string> = {
+    percentage: '할인율',
+    bogo: 'BOGO',
+    coupon: '쿠폰',
+    gift: '사은품',
+    bundle: '번들',
+  }
+
+  const rows = promotions.map((promo) => [
+    promo.title,
+    channelMap[promo.channelId] || promo.channelId,
+    statusMap[promo.status] || promo.status,
+    discountTypeMap[promo.discountType] || promo.discountType,
+    promo.discountValue,
+    promo.startDate,
+    promo.endDate,
+    promo.description || '',
+  ])
+
+  const escapeCSV = (value: string) => {
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+      return `"${value.replace(/"/g, '""')}"`
+    }
+    return value
+  }
+
+  const csvRows = [
+    headers.join(','),
+    ...rows.map((row) => row.map(escapeCSV).join(',')),
+  ]
+
+  return '\uFEFF' + csvRows.join('\n') // Add BOM for Excel Korean support
+}
+
+function downloadCSV(content: string, filename: string): void {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 }

@@ -63,6 +63,11 @@ promohub/
 │   │   │   │   └── common/            # LoadingSpinner, EmptyState, ErrorBoundary
 │   │   │   ├── hooks/                 # Custom hooks
 │   │   │   └── lib/                   # Utilities, Supabase clients
+│   │   │       └── supabase/          # Supabase client utilities
+│   │   │           ├── client.ts      # Browser client (use in Client Components)
+│   │   │           ├── server.ts      # Server client (use in Server Components/API)
+│   │   │           └── middleware.ts  # Session refresh for Next.js middleware
+│   │   ├── middleware.ts              # Auth middleware (protect routes)
 │   │   └── package.json
 │   └── landing/                       # Marketing site
 ├── packages/
@@ -162,34 +167,174 @@ Implementation priority for Phase 1:
 5. **Template System** - Save and reuse recurring promotion patterns
 6. **Conflict Detection** - Alert when promotions overlap on same channel/product
 
+## Current Implementation Status
+
+**Overall Completion: ~55% for Phase 1**
+
+The codebase has completed the authentication foundation and is ready for API integration. Most features have working UI with demo data that needs to be replaced with real database calls.
+
+### What's Complete
+
+| Component | Status | Location |
+|-----------|--------|----------|
+| Database Schema | DONE | `supabase/migrations/` - All tables with RLS policies, using `gen_random_uuid()` |
+| Calendar UI | DONE | `apps/web/src/components/calendar/` - Month/week/day views |
+| Promotion Forms | DONE | `apps/web/src/components/promotions/PromotionForm.tsx` |
+| Filter UI | DONE | `apps/web/src/components/filters/` - Channel/status filtering |
+| Layout Components | DONE | `apps/web/src/components/layout/` - Sidebar, header, mobile nav |
+| Type Definitions | DONE | `packages/types/` - Comprehensive TypeScript types |
+| Validation Schemas | DONE | `packages/utils/src/validation.ts` - Zod schemas |
+| Query Functions | DONE | `packages/db/queries/` - Ready for Supabase integration |
+| Seed Data | DONE | `packages/db/seed/` and `supabase/seed.sql` |
+| **Supabase Auth Clients** | DONE | `apps/web/src/lib/supabase/` - Browser, server, middleware clients |
+| **Auth Middleware** | DONE | `apps/web/middleware.ts` - Route protection, session refresh |
+| **Auth Callback Route** | DONE | `apps/web/src/app/api/auth/callback/route.ts` - OAuth/email confirmation |
+| **Login/Signup Pages** | DONE | `apps/web/src/app/(auth)/` - Real forms with Supabase Auth |
+| **UserMenu Component** | DONE | `apps/web/src/components/layout/UserMenu.tsx` - Real user data, logout |
+
+### Authentication Implementation (Completed 2026-02-02)
+
+**Files created:**
+```
+apps/web/
+├── middleware.ts                           # Route protection (/calendar, /promotions, /settings, /products)
+└── src/
+    ├── app/
+    │   ├── api/auth/callback/route.ts      # OAuth & email confirmation handler
+    │   └── (auth)/
+    │       ├── login/page.tsx              # Email/password login with Suspense
+    │       └── signup/page.tsx             # Signup with email confirmation flow
+    ├── lib/supabase/
+    │   ├── client.ts                       # Browser client (createBrowserClient)
+    │   ├── server.ts                       # Server client (createServerClient)
+    │   ├── middleware.ts                   # Session refresh (updateSession)
+    │   └── index.ts                        # Export index
+    └── components/layout/
+        └── UserMenu.tsx                    # Real user data display, working logout
+```
+
+**Environment variables updated:**
+- Uses new Supabase key format: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (replaces legacy `ANON_KEY`)
+
+**Database migrations fixed:**
+- All migrations updated to use `gen_random_uuid()` instead of deprecated `uuid_generate_v4()`
+
+### What Needs Implementation (Priority Order)
+
+#### Priority 1: HIGH - Replace Demo Data with API Calls
+
+| Issue | Location | Action Required |
+|-------|----------|-----------------|
+| Calendar uses static data | `apps/web/src/app/(dashboard)/calendar/page.tsx:9-88` | Remove `DEMO_PROMOTIONS`, fetch via API |
+| Promotions list uses static data | `apps/web/src/app/(dashboard)/promotions/page.tsx:10-109` | Remove `DEMO_PROMOTIONS`, fetch via API |
+| FilterProvider uses static channels | `apps/web/src/components/filters/FilterProvider.tsx:14-20` | Fetch channels from database |
+| API Routes are stubs | `apps/web/src/app/api/promotions/route.ts` | Connect to `@promohub/db` queries, add auth/validation |
+| Hardcoded Demo Team ID | `apps/web/src/app/(dashboard)/promotions/new/page.tsx:8` | Get team_id from authenticated session |
+
+#### Priority 2: MEDIUM - Core Features
+
+| Feature | Status | Action Required |
+|---------|--------|-----------------|
+| Team Management | Schema only | Create `apps/web/src/app/(dashboard)/settings/team/page.tsx` |
+| Conflict Detection UI | Query ready | Add warning UI to `PromotionForm.tsx` using `checkPromotionConflicts` |
+| Products Page | Missing | Create `apps/web/src/app/(dashboard)/products/page.tsx` |
+| Template System UI | Schema only | Create template CRUD and selection in promotion form |
+
+#### Priority 3: LOW - Polish
+
+| Issue | Location | Action Required |
+|-------|----------|-----------------|
+| Inconsistent Channel IDs | FilterProvider vs Database | Unify to use UUIDs or create mapping layer |
+| Missing Error Boundaries | `apps/web/src/components/common/` | Create `ErrorBoundary.tsx` |
+| Incomplete Korean localization | Various UI files | Setup i18n library (next-intl recommended) |
+
+### Channel ID Mapping Reference
+
+The codebase currently has inconsistent channel identification:
+
+| FilterProvider (slug) | Database (UUID) | Display Name |
+|-----------------------|-----------------|--------------|
+| `'oliveyoung'` | `'c1000000-0000-0000-0000-000000000001'` | Oliveyoung |
+| `'coupang'` | `'c1000000-0000-0000-0000-000000000002'` | Coupang |
+| `'naver'` | `'c1000000-0000-0000-0000-000000000003'` | Naver |
+| `'kakao'` | `'c1000000-0000-0000-0000-000000000004'` | Kakao |
+| `'musinsa'` | `'c1000000-0000-0000-0000-000000000005'` | Musinsa |
+
+**Solution**: Fetch channels from API and use UUID consistently throughout the app.
+
+### Implementation Checklist
+
+When implementing features, ensure:
+
+- [ ] **Auth**: Every page/API route verifies authentication
+- [ ] **Team Scoping**: All queries include team_id from session
+- [ ] **Validation**: All inputs validated with Zod schemas from `@promohub/utils`
+- [ ] **Error Handling**: Proper error states and user feedback
+- [ ] **Loading States**: Show loading indicators during data fetches
+- [ ] **Type Safety**: Use types from `@promohub/types`
+
 ## API Routes (Next.js App Router)
 
 ```
-# Auth
-POST   /api/auth/[...nextauth]     # NextAuth.js handlers
+# Auth (Supabase Auth - handled client-side, callback route for redirects)
+GET    /api/auth/callback          # OAuth/email confirmation redirect handler  [DONE]
 
 # Promotions
-GET    /api/promotions             # List promotions (with filters)
-POST   /api/promotions             # Create promotion
-GET    /api/promotions/[id]        # Get promotion detail
-PATCH  /api/promotions/[id]        # Update promotion
-DELETE /api/promotions/[id]        # Delete promotion
+GET    /api/promotions             # List promotions (with filters)        [STUB]
+POST   /api/promotions             # Create promotion                      [STUB]
+GET    /api/promotions/[id]        # Get promotion detail                  [TODO]
+PATCH  /api/promotions/[id]        # Update promotion                      [TODO]
+DELETE /api/promotions/[id]        # Delete promotion                      [TODO]
 
 # Calendar
-GET    /api/calendar               # Get promotions for date range
+GET    /api/calendar               # Get promotions for date range         [TODO]
 
 # Teams
-GET    /api/teams                  # List user's teams
-POST   /api/teams                  # Create team
-POST   /api/teams/[id]/invite      # Invite member
+GET    /api/teams                  # List user's teams                     [TODO]
+POST   /api/teams                  # Create team                           [TODO]
+POST   /api/teams/[id]/invite      # Invite member                         [TODO]
 
 # Channels & Products
-GET    /api/channels               # List channels
-GET    /api/products               # List products
+GET    /api/channels               # List channels                         [TODO]
+GET    /api/products               # List products                         [TODO]
 
 # Webhooks
-POST   /api/webhooks/stripe        # Stripe payment webhooks
-POST   /api/webhooks/slack         # Slack notifications
+POST   /api/webhooks/stripe        # Stripe payment webhooks               [Phase 2]
+POST   /api/webhooks/slack         # Slack notifications                   [Phase 2]
+```
+
+**API Route Implementation Pattern:**
+```typescript
+// apps/web/src/app/api/promotions/route.ts
+import { createServerClient } from '@/lib/supabase/server'
+import { getPromotions, createPromotion } from '@promohub/db'
+import { createPromotionSchema } from '@promohub/utils'
+
+export async function GET(request: Request) {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Get user's team_id from team_members table
+  const { data: membership } = await supabase
+    .from('team_members')
+    .select('team_id')
+    .eq('user_id', user.id)
+    .single()
+
+  if (!membership) {
+    return Response.json({ error: 'No team found' }, { status: 403 })
+  }
+
+  const promotions = await getPromotions(supabase, {
+    teamId: membership.team_id
+  })
+
+  return Response.json(promotions)
+}
 ```
 
 ## Environment Variables
@@ -198,28 +343,24 @@ POST   /api/webhooks/slack         # Slack notifications
 # ============================================
 # PUBLIC (safe to expose in browser)
 # ============================================
-NEXT_PUBLIC_SUPABASE_URL=          # Supabase project URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=     # Anon key (RLS enforced)
-NEXT_PUBLIC_APP_URL=               # App domain for OAuth redirects
+NEXT_PUBLIC_SUPABASE_URL=              # Supabase project URL
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=  # Publishable key (sb_publishable_...)
+NEXT_PUBLIC_APP_URL=                   # App domain for OAuth redirects
 
 # ============================================
 # SECRET (server-side only, NEVER expose)
 # ============================================
 
-# Supabase Admin (DANGER: bypasses RLS - use sparingly)
-SUPABASE_SERVICE_ROLE_KEY=
+# Supabase Secret Key (DANGER: bypasses RLS - use sparingly)
+SUPABASE_SECRET_KEY=                   # Secret key (sb_secret_...)
 
-# Auth
-NEXTAUTH_SECRET=                   # Random 32+ char string
-NEXTAUTH_URL=
-
-# Payments
+# Payments (Phase 2)
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 TOSS_SECRET_KEY=
 TOSS_CLIENT_KEY=
 
-# Notifications
+# Notifications (Phase 2)
 SLACK_WEBHOOK_URL=
 KAKAO_ALIMTALK_KEY=
 KAKAO_ALIMTALK_SENDER=
@@ -231,10 +372,25 @@ NAVER_CLIENT_ID=
 NAVER_CLIENT_SECRET=
 ```
 
+**For Local Development (Supabase CLI):**
+```bash
+# After running `supabase start`, these are auto-generated:
+# NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+# NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<from dashboard>
+# SUPABASE_SECRET_KEY=<from dashboard>
+#
+# Get keys from Supabase Dashboard → Project Settings → API
+```
+
+**API Keys (2025 Update):**
+- Supabase now uses `sb_publishable_...` and `sb_secret_...` keys
+- Legacy `anon` and `service_role` JWT-based keys are deprecated for new projects
+- Publishable key: Safe for browser, RLS enforced
+- Secret key: Server-only, bypasses RLS
+
 **Security Notes:**
 - `NEXT_PUBLIC_*` are exposed to browser - only use for truly public values
-- `SUPABASE_SERVICE_ROLE_KEY` bypasses ALL RLS - never use in API routes that handle user requests
-- Generate `NEXTAUTH_SECRET` with: `openssl rand -base64 32`
+- `SUPABASE_SECRET_KEY` bypasses ALL RLS - never use in API routes that handle user requests
 - Use different values for development, staging, and production
 - Rotate secrets regularly, especially after team member departures
 
@@ -298,12 +454,109 @@ USING (
 
 ### Authentication & Authorization
 
+**Supabase Client Setup (Required Files):**
+
+```typescript
+// apps/web/src/lib/supabase/client.ts - Browser client
+'use client'
+import { createBrowserClient } from '@supabase/ssr'
+
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+
+// apps/web/src/lib/supabase/server.ts - Server client
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+
+export async function createClient() {
+  const cookieStore = await cookies()
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+}
+```
+
+**Auth Middleware (apps/web/middleware.ts):**
+```typescript
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({ request })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          response = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Protect dashboard routes
+  if (!user && request.nextUrl.pathname.startsWith('/calendar')) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+  if (!user && request.nextUrl.pathname.startsWith('/promotions')) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+  if (!user && request.nextUrl.pathname.startsWith('/settings')) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  // Redirect logged-in users away from auth pages
+  if (user && request.nextUrl.pathname.startsWith('/login')) {
+    return NextResponse.redirect(new URL('/calendar', request.url))
+  }
+
+  return response
+}
+
+export const config = {
+  matcher: ['/calendar/:path*', '/promotions/:path*', '/settings/:path*', '/login', '/signup'],
+}
+```
+
+**Session verification in pages/API:**
 ```typescript
 // Always verify session server-side
-import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
 export async function getServerSession() {
-  const supabase = createServerClient(/* config */)
+  const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
 
   if (error || !user) {
